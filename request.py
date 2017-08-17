@@ -29,6 +29,17 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+"""
+This module generates the DHCP discover packets and send them out from designated interface.
+
+All filed within every DHCP discover packets are same, except the client MAC address filed, which generated randomly per
+instance.
+
+Function:
+
+dhcp_discover() -- generate a DHCP discover packet which has random client MAC address and send it out.
+"""
+
 import socket
 import struct
 import random
@@ -36,8 +47,21 @@ import checksum
 
 
 def dhcp_discover():
+    """
+    Generate a DHCP discover packet with random client MAC address filed, and convert the packet into byte string.
+
+    Working Principle:
+    1> Build the layer 2(Ethernet) header.
+    2> Build the layer 3(IP) header.
+    3> Build the layer 4(UDP) header.
+    4> Create the DHCP discover data.
+    5> Calculate the checksum value for IP header and UDP header using checksum module(located at the same repository).
+    6> Rebuild the IP and UDP header with real checksum value which calculated at step 5.
+    7> Send the DHCP discover packet from designated interface.
+
+    """
     raw_socket = socket.socket(socket.PF_PACKET, socket.SOCK_RAW, socket.htons(0x0800))
-    raw_socket.bind(('ens33', socket.htons(0x0800)))
+    raw_socket.bind(('ens33', socket.htons(0x0800)))    # Interface name may vary with the computer.
 
     # Layer 2 Header
     src_mac = b'\xaa\xaa\xaa\xaa\xaa\xaa'
@@ -53,10 +77,10 @@ def dhcp_discover():
     ip_id = random.randint(0, 65535)
     flag = 0
     offset = 0
-    flag_offset = (flag << 13) + offset
+    flag_offset = (flag << 13) + offset     # Combine the flag filed and offset filed into two bytes.
     ttl = 255
     ip_protocol = socket.IPPROTO_UDP
-    ip_checksum = 0
+    ip_checksum = 0                         # Checksum is set to 0 temporary.
     src_addr = b'\x00\x00\x00\x00'
     dst_addr = b'\xff\xff\xff\xff'
 
@@ -64,22 +88,22 @@ def dhcp_discover():
     src_port = 68
     dst_port = 67
     udp_len = 302
-    udp_checksum = 0
+    udp_checksum = 0                        # Checksum is set to 0 temporary.
 
-    # DHCP Discover Header
+    # DHCP Discover
     opcode = 1
     hardware_type = 1
     hardware_addr_len = 6
     hops = 1
-    trans_id = random.randint(1, pow(2, 32))
+    trans_id = random.randint(1, pow(2, 32))    # Generate random transaction ID.
     sec_elapsed = 0
     bootp_flag = 0
-    client_ip = b'\x00\x00\x00\x00'
-    your_ip = b'\x00\x00\x00\x00'
-    server_ip = b'\x00\x00\x00\x00'
-    relay_ip = b'\x00\x00\x00\x00'
+    client_ip = b'\x00' * 4
+    your_ip = b'\x00' * 4
+    server_ip = b'\x00' * 4
+    relay_ip = b'\x00' * 4
     client_mac = b''
-    for num in range(7):
+    for num in range(7):                        # Generate random client MAC address.
         temp_byte = random.randint(0, 255)
         client_mac += struct.pack('!B', temp_byte)
     client_mac_padding = b'\x00' * 10
