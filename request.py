@@ -79,7 +79,7 @@ def dhcp_request(_trans_id, _offered_addr, _client_mac, _server_addr):
     ihl = 5
     version_ihl = (version << 4) + ihl
     tos = 0
-    total_len = 284
+    total_len = 286
     ip_id = random.randint(0, 65535)
     flag = 0
     offset = 0
@@ -93,7 +93,7 @@ def dhcp_request(_trans_id, _offered_addr, _client_mac, _server_addr):
     # Layer 4 Header
     src_port = 68
     dst_port = 67
-    udp_len = 264
+    udp_len = 266
     udp_checksum = 0                        # Checksum is set to 0 temporary.
 
     # DHCP Discover
@@ -117,26 +117,27 @@ def dhcp_request(_trans_id, _offered_addr, _client_mac, _server_addr):
     option_50 = b'\x32\04' + _offered_addr
     option_54 = b'\x36\x04' + _server_addr
     option_255 = b'\xff'
+    padding = b'\x00' * 2
 
     # Calculate Real IP & UDP Checksum
     ip_header = struct.pack('!BBHHHBBH4s4s', version_ihl, tos, total_len, ip_id, flag_offset, ttl, ip_protocol,
                             ip_checksum, src_addr, dst_addr)
-    udp_header = struct.pack('!4s4sBBHHHHHBBBB4sHH4s4s4s4s6s10s64s128s4s3s6s6ss', src_addr, dst_addr, 0, ip_protocol
+    udp_header = struct.pack('!4s4sBBHHHHHBBBB4sHH4s4s4s4s6s10s64s128s4s3s6s6ss2s', src_addr, dst_addr, 0, ip_protocol
                              , udp_len, src_port, dst_port, udp_len, udp_checksum, opcode, hardware_type,
                              hardware_addr_len, hops, trans_id, sec_elapsed, bootp_flag, client_ip, your_ip, server_ip,
                              relay_ip, client_mac, client_mac_padding, server_name, boot_file_name, magic_cookie,
-                             option_53, option_50, option_54, option_255)
+                             option_53, option_50, option_54, option_255, padding)
     udp_real_checksum = checksum.checksum(udp_header)
     ip_real_checksum = checksum.checksum(ip_header)
 
     # Generate Headers
     l2_l3_header = struct.pack('!6s6s2sBBHHHBBH4s4s', dst_mac, src_mac, protocol, version_ihl, tos, total_len, ip_id,
                                flag_offset, ttl, ip_protocol, ip_real_checksum, src_addr, dst_addr)
-    real_udp_header = struct.pack('!HHHHBBBB4sHH4s4s4s4s6s10s64s128s4s3s6s6ss', src_port, dst_port, udp_len,
+    real_udp_header = struct.pack('!HHHHBBBB4sHH4s4s4s4s6s10s64s128s4s3s6s6ss2s', src_port, dst_port, udp_len,
                                   udp_real_checksum, opcode, hardware_type, hardware_addr_len, hops, trans_id,
                                   sec_elapsed, bootp_flag, client_ip, your_ip, server_ip, relay_ip, client_mac,
                                   client_mac_padding, server_name, boot_file_name, magic_cookie, option_53, option_50,
-                                  option_54, option_255)
+                                  option_54, option_255, padding)
     packet = l2_l3_header + real_udp_header
     raw_socket.send(packet)
 
