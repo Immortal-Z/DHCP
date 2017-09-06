@@ -81,7 +81,7 @@ def dhcp_request(_trans_id, _offered_addr, _client_mac, _server_addr):
     hops = 1
     trans_id = _trans_id
     sec_elapsed = 0
-    bootp_flag = 0
+    bootp_flag = 1 << 15
     client_ip = b'\x00' * 4
     your_ip = _offered_addr
     server_ip = b'\x00' * 4

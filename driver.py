@@ -30,7 +30,7 @@ new_socket.bind(('', 68))   # Monitoring all IP address associated with this hos
 
 while True:
     data, addr = new_socket.recvfrom(2048)
-    if data[242] == 2:  # Only take action against DHCP offer packet.
+    if data[0] == 2:  # Only take action against DHCP offer packet.
         trans_id = data[4:8]
         offered_addr = data[16:20]
         client_mac = data[28:34]

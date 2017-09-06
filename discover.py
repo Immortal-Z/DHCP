@@ -75,7 +75,7 @@ def dhcp_discover():
     hops = 1
     trans_id = random.randint(1, pow(2, 32))    # Generate random transaction ID.
     sec_elapsed = 0
-    bootp_flag = 0
+    bootp_flag = 1 << 15
     client_ip = b'\x00' * 4
     your_ip = b'\x00' * 4
     server_ip = b'\x00' * 4
