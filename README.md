@@ -1,6 +1,6 @@
 # DHCP Client
 
-This program can simulate the functionally of DHCP client.
+This program can simulate the functionality of DHCP client.
 
 ## Authors
 
